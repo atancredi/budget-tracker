@@ -185,7 +185,4 @@ def create_transaction(conn, transaction):
 if __name__ == '__main__':
     
     database = Database("database.db")
-
-    with database.conn as c:
-        for tr in get_all_transactions(c):
-            print(tr.__dict__)
+    database.dump_transactions()
