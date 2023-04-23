@@ -14,20 +14,26 @@ delete_transactions(conn, ids)
 import sqlite3
 import sys
 
-def create_connection(db_file):
-    """Creates a connection to the SQLite database specified by db_file.
+from data import Database
+
+def create_table(conn, create_table_sql):
+    """Creates a table in the SQLite database open from the conn and the create_table_sql.
 
     Parameters:
-        param db_file (string): Path to database file
-    Returns:
-         Connection object or None
+        conn (Connection): Connection object
+        create_table_sql (String): a CREATE TABLE statement
     """
     try:
-        conn = sqlite3.connect(db_file)
-        return conn
+        c = conn.cursor()
+        c.execute(create_table_sql)
     except sqlite3.Error as e:
         print(e, file=sys.stderr)
     return None
+
+def get_all_transactions(conn):
+    cur = conn.cursor()
+    cur.execute('''SELECT * FROM transactions''')
+    return cur.fetchall()
 
 def select_transactions(conn, date_from, date_to, *args):
     """Selects all columns from 'transaction' with conditions given.
@@ -150,7 +156,6 @@ def get_expenses_by_category(conn, date_from, date_to, *args):
             expenses_by_category[f"{row[5]}"] = float(row[2])*multiplier
     return expenses_by_category
 
-
 def delete_transactions(conn, ids):
     """Delete entries from 'transactions' table given their id's.
 
@@ -161,27 +166,6 @@ def delete_transactions(conn, ids):
     for item in ids:
         cur.execute("DELETE from transactions WHERE id=? ", (item,))
     conn.commit()
-
-def create_transactions_table(conn):
-    """Create a table from the create_table_sql statement.
-    Parameters:
-        conn (Connection): Connection object
-        create_table_sql (String): a CREATE TABLE statement
-
-    """
-    sql_create_transactions_table = """ CREATE TABLE IF NOT EXISTS transactions (
-                                        id integer PRIMARY KEY,
-                                        date text,
-                                        value float,
-                                        currency text,
-                                        desc text,
-                                        categ text
-                                    ); """
-    try:
-        c = conn.cursor()
-        c.execute(sql_create_transactions_table)
-    except sqlite3.Error as e:
-        print(e, file=sys.stderr)
 
 def create_transaction(conn, transaction):
     """Create a new entry into the 'transactions' table.
@@ -195,24 +179,9 @@ def create_transaction(conn, transaction):
     cur = conn.cursor()
     cur.execute(sql, transaction)
 
-def main():
-    database = "transaction_database.db"
-    sql_create_transactions_table = """ CREATE TABLE IF NOT EXISTS transactions (
-                                        id integer PRIMARY KEY,
-                                        date text,
-                                        value float,
-                                        currency text,
-                                        desc text,
-                                        categ text
-                                    ); """
-
-    # create a database connection
-    conn = create_connection(database)
-
-    if conn is not None:
-        # create transactions table
-        with conn:
-            create_table(conn, sql_create_transactions_table)
-
 if __name__ == '__main__':
-    main()
+    
+    database = Database("database.db")
+
+    with database.conn as c:
+        print(get_all_transactions(c))
