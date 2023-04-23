@@ -14,7 +14,7 @@ delete_transactions(conn, ids)
 import sqlite3
 import sys
 
-from data import Database
+from data import Database, Transaction
 
 def create_table(conn, create_table_sql):
     """Creates a table in the SQLite database open from the conn and the create_table_sql.
@@ -33,7 +33,10 @@ def create_table(conn, create_table_sql):
 def get_all_transactions(conn):
     cur = conn.cursor()
     cur.execute('''SELECT * FROM transactions''')
-    return cur.fetchall()
+    transactions = []
+    for tr in cur.fetchall():
+        transactions.append(Transaction(tr))
+    return transactions
 
 def select_transactions(conn, date_from, date_to, *args):
     """Selects all columns from 'transaction' with conditions given.
@@ -184,4 +187,5 @@ if __name__ == '__main__':
     database = Database("database.db")
 
     with database.conn as c:
-        print(get_all_transactions(c))
+        for tr in get_all_transactions(c):
+            print(tr.__dict__)

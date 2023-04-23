@@ -28,4 +28,18 @@ class Database:
         c = self.conn.cursor()
         c.execute(sql_create_transactions_table)
 
-        
+class Transaction:
+    id: int
+    date: str
+    value: float
+    currency: str
+    description: str
+    category: str
+
+    def __init__(self,raw_transaction):
+        self.id = int(raw_transaction[0])
+        self.date = raw_transaction[1]
+        self.value = float(raw_transaction[2])
+        self.currency = raw_transaction[3]
+        self.desc = raw_transaction[4]
+        self.categ = raw_transaction[5]
